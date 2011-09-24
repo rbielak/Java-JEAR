@@ -1,0 +1,27 @@
+2005/08/19 richieb@gmail.com
+
+
+JEAR
+
+Ear Training program in Java.
+
+I wrote this program in order to learn a bit about Java Swing programming. At this point
+the program is functioning, but only has three lessons.
+
+I was planning to invent some kind of XML based file format for defining lessons, but 
+never got around to it.
+
+You can use the build.xml script to compile everything. An exacutable "jar" file is also included.
+
+	ant jar 
+	
+will create a jar file. You will need the Ant build tool.
+
+To run the "jar" file just type:
+
+	java -jar jear
+
+You will need the Java SDK. I tested with 1.4 and 1.5.
+
+Let me know if you run into any problems. 
+

@@ -1,0 +1,148 @@
+/*
+ * JEAR - Java ear training
+ * User: richieb
+ * Date: Oct 25, 2002
+ * Time: 4:03:05 PM
+ */
+package org.jear.lesson;
+
+import org.jear.synth.SimpleSynth;
+import org.jear.synth.AsynchRecorder;
+import org.jear.ui.Keyboard;
+import org.jear.ui.KeyboardPlayer;
+import java.util.Observer;
+import java.util.Observable;
+
+/**
+ * This class controls the execution of the lessons, it listens for answers
+ * and grades results.
+ */
+public class Teacher extends Observable implements Observer {
+
+    public final static int LISTENING_FOR_ANSWER = 1;
+    public final static int ANSWER_CORRECT = 2;
+    public final static int ANSWER_WRONG = 3;
+
+    private Lesson currentLesson;
+    private Question currentQuestion;
+    private SimpleSynth synth;
+    private Keyboard keyboard;
+    private KeyboardPlayer keyboardPlayer;
+    private AsynchRecorder recorder;
+
+    /**
+     * Create a teacher - give teacher a synthesizer so she can play questions.
+     *
+     * @param kb - used to play questions
+     */
+    public Teacher (Keyboard kb) {
+        keyboard = kb;
+        synth = kb.getSynth();
+        // Create and start a thread to show answers on the keyboard.
+        // This needs to be a separate thread, as the GUI button handler
+        // cannot update display
+        keyboardPlayer = new KeyboardPlayer (keyboard);
+        keyboardPlayer.start();
+        // create a recorder to listen for answers
+        recorder = new AsynchRecorder ();
+        recorder.addObserver(this);
+    }
+
+    /**
+     * Set lesson that the teacher will teach
+     * @param l  a lesson to teach
+     */
+    public void setLesson (Lesson l) {
+		System.out.println ("Teacher.seltLesson called ");
+        currentLesson = l;
+		currentLesson.start();
+		currentQuestion = (Question)currentLesson.next();
+        setChanged ();
+        notifyObservers ();
+    }
+
+    public Lesson getCurrentLesson() {
+        return currentLesson;
+    }
+
+	public Question getCurrentQuestion () {
+		return currentQuestion;
+	}
+
+    public double getCurrentAverage () {
+        double c = currentLesson.getCorrects();
+        double t = currentLesson.getQuestionCount();
+        return 100.0 * (c/t);
+    }
+
+    public double getPercentWrong () {
+        double w = currentLesson.getWrongs();
+        double t = currentLesson.getQuestionCount();
+        return 100.0 * (w/t);
+    }
+
+    public void askQuestion () throws Exception {
+		if (currentQuestion == null) 
+			throw new Exception ("CurrentQuestion is null");
+		System.out.println ("Current q: " + currentLesson.getCurrentQuestionIndex ()
+							+ " qid:" + currentQuestion);
+        synth.playNotes(currentQuestion.getNotes(), currentLesson.getMelodic(), 1000);
+        // listen for answer
+        recorder.reset();
+        synth.setRecorder(recorder);
+    }
+
+    public void skipToNextQuestion () {
+		if (currentQuestion.getAnswerState () == Question.NOT_ANSWERED) {
+			// Mark wrong if wasn't answered
+			System.out.println ("skipToNextQuestion: marking wrong. #");
+			currentQuestion.markWrong();
+		}
+        moveToNextQuestion ();
+        // disable recorder
+        synth.setRecorder (null);
+        setChanged ();
+        notifyObservers ();
+    }
+
+    public void skipToPreviousQuestion () {
+        if (currentLesson.hasPrevious())
+            currentQuestion = (Question)currentLesson.previous();
+        setChanged ();
+        notifyObservers();
+    }
+
+    /**
+     * Show the answer to the current question
+     */
+    public void showAnswer() {
+        if (currentQuestion != null) {
+            // Disable recording
+            synth.setRecorder(null);
+            keyboardPlayer.playNotes(currentQuestion.getNotes());
+            setChanged ();
+            notifyObservers ();
+        }
+    }
+
+    // Called when the recorder records notes.
+    public void update (Observable observed, Object arg) {
+        if (recorder.getCount () >= currentQuestion.getNotes().length) {
+            // Should allow multiple tries at the answer here
+            urrentQuestion.checkAnswer(recorder.getNotes());
+            //moveToNextQuestion();
+            synth.setRecorder(null);
+            recorder.reset ();
+            setChanged ();
+            notifyObservers ();
+        }
+    }
+
+    private void moveToNextQuestion () {
+        if (currentLesson.hasNext())
+            currentQuestion = (Question)currentLesson.next();
+        else
+            currentQuestion = null;
+		System.out.println ("Move to next question called: " + currentQuestion);
+    }
+}

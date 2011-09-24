@@ -1,0 +1,12 @@
+[PropertyInfo]
+gen,LessonGenerator,false,false, , ,false,<default>
+jOptionPane1,JOptionPane,false,false, , ,false,<default>
+keyboard,Keyboard,false,false, , ,false,<default>
+mainWindow,JearWindow,false,false, , ,false,<default>
+synth,SimpleSynth,false,false, , ,false,<default>
+teacher,Teacher,false,false, , ,false,<default>
+[IconNames]
+
+
+
+

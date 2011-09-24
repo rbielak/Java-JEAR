@@ -1,0 +1,54 @@
+<project name="Sound Projects" default="run1">
+
+<!-- Load environment variables -->
+<property environment="env"/>
+
+<property name="outdir" value="${basedir}/classes"/>
+<property name="docdir" value="${basedir}/doc"/>
+<property name="srcdir" value="${basedir}"/>
+
+
+<path id="sp.classpath">
+	<pathelement path="${outdir}" />
+	<pathelement path="/usr/local/java_libs/junit/junit.jar" />
+</path>
+
+<target name="clean">
+   <delete dir="${outdir}"/>
+   <delete dir="${docdir}"/>
+   <mkdir dir="${outdir}"/>
+   <mkdir dir="${docdir}"/>
+</target>
+
+<target name="compile" description="Compile all sources">
+   <javac classpathref="sp.classpath" destdir="${outdir}" srcdir="${srcdir}" optimize="yes">
+   </javac>
+</target>
+
+<target name="run1" depends="compile">
+   <java classname="org.jear.SoundExample" classpathref="sp.classpath" fork="yes"/>
+</target>
+
+<target name="testall" depends="compile">
+   <java classname="org.jear.tests.TestAll" classpathref="sp.classpath" fork="yes"/>
+</target>
+
+
+<target name="jear" depends="compile">
+   <java classname="org.jear.main.EarTrainer" classpathref="sp.classpath" fork="yes"/>
+</target>
+
+<target name="jar" depends="compile">
+	<delete file="jear.jar"/>
+	<jar destfile="jear.jar" basedir="${basedir}/classes">
+	    <manifest>
+	       <attribute name="Main-Class" value="org.jear.main.EarTrainer"/>
+	    </manifest>		
+		<fileset dir="${basedir}">
+			<include name="**/*.class"/>
+		</fileset>
+	</jar>
+</target>
+	
+
+</project>
